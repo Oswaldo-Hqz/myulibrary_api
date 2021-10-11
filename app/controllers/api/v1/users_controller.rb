@@ -1,5 +1,5 @@
 class Api::V1::UsersController < ApplicationController
-  before_action :set_api_v1_user, only: [:show, :update, :destroy]
+  before_action :authorized, only: [:auto_login]
 
   # GET /api/v1/users
   def index
@@ -15,37 +15,53 @@ class Api::V1::UsersController < ApplicationController
 
   # POST /api/v1/users
   def create
-    @api_v1_user = User.new(api_v1_user_params)
+    @api_v1_user = User.new(user_params)
 
-    if @api_v1_user.save
-      render json: @api_v1_user, status: :created, location: @api_v1_user
+    if @api_v1_user.valid?
+      token = encode_token({user_id: @api_v1_user.id})
+      render json: {user: @api_v1_user, token: token}
     else
-      render json: @api_v1_user.errors, status: :unprocessable_entity
+      render json: {error: "Invalid user data"}
     end
   end
 
   # PATCH/PUT /api/v1/users/1
-  def update
-    if @api_v1_user.update(api_v1_user_params)
-      render json: @api_v1_user
+  # def update
+  #   if @api_v1_user.update(user_params)
+  #     render json: @api_v1_user
+  #   else
+  #     render json: @api_v1_user.errors, status: :unprocessable_entity
+  #   end
+  # end
+
+  # DELETE /api/v1/users/1
+  # def destroy
+  #   @api_v1_user.destroy
+  # end
+
+  def login
+    @api_v1_user = User.find_by(username: params[:username])
+
+    if @api_v1_user && @api_v1_user.authenticate(params[:password])
+      token = encode_token({user_id: @api_v1_user.id})
+      render json: {user: @api_v1_user, token: token}
     else
-      render json: @api_v1_user.errors, status: :unprocessable_entity
+      render json: {error: "Invalid email or password"}
     end
   end
 
-  # DELETE /api/v1/users/1
-  def destroy
-    @api_v1_user.destroy
+  def auto_login
+    render json: @user
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
-    def set_api_v1_user
-      @api_v1_user = User.find(params[:id])
-    end
+    # def set_api_v1_user
+    #   @api_v1_user = User.find(params[:id])
+    # end
 
     # Only allow a list of trusted parameters through.
-    def api_v1_user_params
+    def user_params
       params.require(:api_v1_user).permit(:first_name, :last_name, :role_id, :email, :password_digest)
     end
 end
