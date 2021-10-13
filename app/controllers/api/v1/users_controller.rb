@@ -2,65 +2,60 @@ class Api::V1::UsersController < ApplicationController
   before_action :authorized, only: [:auto_login]
 
   # GET /api/v1/users
-  def index
-    @api_v1_users = User.all
-
-    render json: @api_v1_users
+  def list
+    @users = User.all
+    if @users
+      render json: @users
+    else
+      render json: { status: 500, errors: ['no users found'] }      
+    end
   end
 
   # GET /api/v1/users/1
-  def show
-    render json: @api_v1_user
+  def profile
+    @user = User.find(params[:id])
+    if @user
+      render json: @user
+    else
+      render json: { status: 500, errors: ['user not found'] }
+    end
   end
 
   # POST /api/v1/users
   def create
-    @api_v1_user = User.new(user_params)
+    @user = User.new(user_params)
 
-    if @api_v1_user.valid?
-      token = encode_token({user_id: @api_v1_user.id})
-      render json: {user: @api_v1_user, token: token}
+    if @user.valid?
+      token = encode_token({user_id: @user.id})
+      time = Time.now + 4.hours.to_i
+      render json: {user: @user, token: token, exp: time.strftime("%m-%d-%Y %H:%M")}
     else
       render json: {error: "Invalid user data"}
     end
   end
 
-  # PATCH/PUT /api/v1/users/1
-  # def update
-  #   if @api_v1_user.update(user_params)
-  #     render json: @api_v1_user
-  #   else
-  #     render json: @api_v1_user.errors, status: :unprocessable_entity
-  #   end
-  # end
-
-  # DELETE /api/v1/users/1
-  # def destroy
-  #   @api_v1_user.destroy
-  # end
-
   def login
-    @api_v1_user = User.find_by(username: params[:username])
+    @user = User.find_by(email: params[:email])
 
-    if @api_v1_user && @api_v1_user.authenticate(params[:password])
-      token = encode_token({user_id: @api_v1_user.id})
-      render json: {user: @api_v1_user, token: token}
+    if @user && @user.authenticate(params[:password])
+      token = encode_token({user_id: @user.id})
+      time = Time.now + 4.hours.to_i
+      render json: {user: @user, token: token, exp: time.strftime("%m-%d-%Y %H:%M")}
     else
-      render json: {error: "Invalid email or password"}
+      render json: {error: "log in failed! Invalid email or password"}
     end
   end
 
   def auto_login
-    render json: @user
+    if logged_in_user
+      render json: logged_in_user
+    else
+      render json: {errors: "No user logged in"}
+    end        
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    # def set_api_v1_user
-    #   @api_v1_user = User.find(params[:id])
-    # end
-
-    # Only allow a list of trusted parameters through.
+  
     def user_params
       params.require(:api_v1_user).permit(:first_name, :last_name, :role_id, :email, :password_digest)
     end
