@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   end
   namespace :api do
     namespace :v1 do
-      resource :users, only: [:create]
+      resource :users, only: [:create, :profile, :list]
       post "/login", to: "users#login"
       get "/auto_login", to: "users#auto_login"
     end
