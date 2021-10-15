@@ -32,7 +32,7 @@ development:
   #username: myulibrary_api
 
   # The password associated with the postgres role (username).
-  password: password
+  #password: password
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -81,6 +81,6 @@ test:
 #
 production:
   <<: *default
-  database: myulibrary_api_production
-  username: myulibrary_api
-  password: <%= ENV['MYULIBRARY_API_DATABASE_PASSWORD'] %>
+  database: d4mhecemtqvrv2
+  username: woqyoklpyyozox
+  password: f0639c0d9eabef850d34d3292d48abbcd5dce85b9d742f369f1d7f87c7ee7dca
