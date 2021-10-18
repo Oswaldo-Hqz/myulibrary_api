@@ -1,3 +1,3 @@
 class BookGenre < ApplicationRecord
-    # has_many :book
+    has_many :book
 end
